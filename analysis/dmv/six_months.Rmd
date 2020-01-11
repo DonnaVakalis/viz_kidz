@@ -3,12 +3,32 @@ title: "R Notebook for initial analysis of 6 month Amos and Rilka"
 output: html_notebook
 ---
  
+```{r}
+############## LIBRARIES ++++++++++++++
+library(readr) #for reading csv files
+
+library(dplyr)
+
+```
+ 
  
 ```{r}
-
+############## LOAD FILES ++++++++++++++
 
 # Load csv files
+dat.amos <-
+  read_csv("../../dat/Amos_20190613_20200111.csv") %>%  #read raw file
+  rename (date_time = 'Date and Time') %>%              #convert character dates to usable date object
+  mutate (y.m.d = as.POSIXct(
+                substr(date_time,1,8), 
+                    format="%m/%d/%y", 
+                    tz=Sys.timezone() ) ) %>%           #convert character times to usable time object
+  mutate (hour = as.POSIXct( 
+                substr(date_time,10,14),              
+                    format="%m/%d/%y", 
+                    tz=Sys.timezone() ) ))
 
+ 
 
 
 ```
