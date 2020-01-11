@@ -1,0 +1,16 @@
+---
+title: "R Notebook for initial analysis of 6 month Amos and Rilka"
+output: html_notebook
+---
+ 
+ 
+```{r}
+
+
+# Load csv files
+
+
+
+```
+ 
+ 
