@@ -59,16 +59,16 @@ dat.merged <-
  
 
     
- r2 <- as.POSIXct(v1, format = "%H:%M:%S")
+
 
 # Add location tags
 dat.merged$locID <-
     case_when(
             dat.merged$y.m.d %within% interval(ymd("2019-07-13"),ymd("2019-09-02")) ~ "Toronto",
-            dat.merged$y.m.d %within% interval(ymd("2019-09-03"),ymd("2019-10-01")) ~ "Caribou River",
-            dat.merged$y.m.d %within% interval(ymd("2019-10-02"),ymd("2019-11-30")) ~ "Paris",
-            dat.merged$y.m.d %within% interval(ymd("2019-12-01"),ymd("2019-12-29")) ~ "Villemus",
-            dat.merged$y.m.d %within% interval(ymd("2019-12-30"),ymd("2020-01-20")) ~ "Nice",
+            dat.merged$y.m.d %within% interval(ymd("2019-09-02"),ymd("2019-10-01")) ~ "Caribou River",
+            dat.merged$y.m.d %within% interval(ymd("2019-10-01"),ymd("2019-11-30")) ~ "Paris",
+            dat.merged$y.m.d %within% interval(ymd("2019-11-30"),ymd("2019-12-29")) ~ "Villemus",
+            dat.merged$y.m.d %within% interval(ymd("2019-12-29"),ymd("2020-01-20")) ~ "Nice",
             TRUE ~ "unspecified") 
 
 # Factorize
@@ -84,7 +84,7 @@ dat.merged <-
 
 dat.subset <-
     dat.merged %>%
-    select (-c('End Time',date_time,`Duration (min)`,Notes)) 
+    select (-c('End Time',date_time,Notes)) 
 
 
 # plot Overview histogram of data entered
@@ -100,6 +100,25 @@ dat.subset %>%
         stat_count(position="identity") +
         scale_x_time(breaks = "0.5 hours") +
         labs(x="Time of day", y="count\n")  
+
+ 
+
+#plot hours slept in each city
+dat.subset%>%
+    filter(Activity=="Sleep") %>%
+    ggplot(aes(x= 'ID',fill=locID)) +
+        geom_bar(position="stack") + 
+        facet_grid(.~ID) +
+        theme_minimal() +
+        labs(x="Minutes slept in each City", y="[minutes]\n") + 
+        theme(panel.grid.major=element_blank()) 
+ 
+
+dat.subset %>%
+    filter(Activity=="Sleep")%>%
+    #aggregate(Activity ~ locID, FUN = sum) %>%
+    ggplot(aes(x=locID, y= Activity)) +
+        geom_bar(stat = "identity")
  
 
 # plot Quantity if Activity == head size
