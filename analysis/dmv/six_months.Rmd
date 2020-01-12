@@ -4,31 +4,67 @@ output: html_notebook
 ---
  
 ```{r}
-############## LIBRARIES ++++++++++++++
+############## LIBRARIES =========================
 library(readr) #for reading csv files
-
+library(lubridate) #for working with times
 library(dplyr)
 
 ```
  
  
 ```{r}
-############## LOAD FILES ++++++++++++++
+############## LOAD FILES and CREATE DATAFRAME, with age and location ========================
 
 # Load csv files
 dat.amos <-
-  read_csv("../../dat/Amos_20190613_20200111.csv") %>%  #read raw file
-  rename (date_time = 'Date and Time') %>%              #convert character dates to usable date object
-  mutate (y.m.d = as.POSIXct(
-                substr(date_time,1,8), 
-                    format="%m/%d/%y", 
-                    tz=Sys.timezone() ) ) %>%           #convert character times to usable time object
-  mutate (hour = as.POSIXct( 
-                substr(date_time,10,14),              
-                    format="%m/%d/%y", 
-                    tz=Sys.timezone() ) ))
+    read_csv("../../dat/Amos_20190613_20200111.csv") %>%  #read raw file
+    rename (date_time = 'Date and Time') %>%    #convert character dates to usable date object
+    mutate (ID = "Amos")
 
+dat.rilka <-
+    read_csv("../../dat/Rilka_20190613_20200111.csv") %>%  #read raw file
+    rename (date_time = 'Date and Time') %>% #convert character dates to usable date object  
+    mutate (ID = "Rilka")
+
+# Create a dataframe for both their data together
+dat.merged <-
+    merge(dat.amos,dat.rilka, all=TRUE) %>%
+    mutate (y.m.d = as.POSIXct(
+        substr(date_time,1,9), 
+        format="%m/%d/%y")) %>% # convert character date and time columns
+    mutate (hr.min = substr(date_time,8,15)) 
  
+# Add age columns 
+BIRTHDATE <- as.POSIXct("2019-07-13")
+dat.merged <-
+    dat.merged %>%
+    mutate(age.days = difftime( #age in days, starting at zero 
+        as.POSIXct(y.m.d), BIRTHDATE, 
+        units="days")) %>%
+    mutate(age.days = round(age.days,0)) %>%  
+    mutate(age.wks = difftime ( #age in days, starting at zero
+        as.POSIXct(y.m.d), BIRTHDATE,
+        unit = "weeks")) %>%
+    mutate(age.wks = round(age.wks,1)) 
+    
+ 
+
+# Add location tags
+dat.merged$locID <-
+    case_when(
+            dat.merged$y.m.d %within% interval(ymd("2019-07-13"),ymd("2019-09-02")) ~ "Toronto",
+            dat.merged$y.m.d %within% interval(ymd("2019-09-03"),ymd("2019-10-01")) ~ "Caribou River",
+            dat.merged$y.m.d %within% interval(ymd("2019-10-02"),ymd("2019-11-30")) ~ "Paris",
+            dat.merged$y.m.d %within% interval(ymd("2019-12-01"),ymd("2019-12-29")) ~ "Villemus",
+            dat.merged$y.m.d %within% interval(ymd("2019-12-30"),ymd("2020-01-20")) ~ "Nice",
+            TRUE ~ "unspecified") 
+
+
+```
+ 
+```{r}
+############## VIZUALIZE SOME DATA :) ========================
+
 
 
 ```
