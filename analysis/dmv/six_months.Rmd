@@ -6,7 +6,12 @@ output: html_notebook
 ```{r}
 ############## LIBRARIES =========================
 library(readr) #for reading csv files
-library(lubridate) #for working with times
+library(lubridate) #for working with dates
+library(chron) #for working with times
+
+library(scales) # for working with date/time in plots
+library(ggplot2) # for plots
+
 library(dplyr)
 
 ```
@@ -32,7 +37,10 @@ dat.merged <-
     mutate (y.m.d = as.POSIXct(
         substr(date_time,1,9), 
         format="%m/%d/%y")) %>% # convert character date and time columns
-    mutate (hr.min = substr(date_time,8,15)) 
+    mutate (hr.min = substr(date_time,8,15)) %>%        # create a time column 
+    mutate(hr.min = as.POSIXct(dat.merged$hr.min, format = "%H:%M")) #this inserts a placeholder 'date' that can be ignored
+
+ 
  
 # Add age columns 
 BIRTHDATE <- as.POSIXct("2019-07-13")
@@ -45,9 +53,13 @@ dat.merged <-
     mutate(age.wks = difftime ( #age in days, starting at zero
         as.POSIXct(y.m.d), BIRTHDATE,
         unit = "weeks")) %>%
-    mutate(age.wks = round(age.wks,1)) 
-    
+    mutate(age.wks = round(age.wks,1))
+
+
  
+
+    
+ r2 <- as.POSIXct(v1, format = "%H:%M:%S")
 
 # Add location tags
 dat.merged$locID <-
@@ -59,12 +71,38 @@ dat.merged$locID <-
             dat.merged$y.m.d %within% interval(ymd("2019-12-30"),ymd("2020-01-20")) ~ "Nice",
             TRUE ~ "unspecified") 
 
+# Factorize
+dat.merged <-
+    dat.merged %>%
+    mutate_at(vars(Activity,Caregiver,ID,locID),factor)
+
 
 ```
  
 ```{r}
 ############## VIZUALIZE SOME DATA :) ========================
 
+dat.subset <-
+    dat.merged %>%
+    select (-c('End Time',date_time,`Duration (min)`,Notes)) 
+
+
+# plot Overview histogram of data entered
+ggplot(dat.subset, aes(hr.min, fill = Activity)) +
+  geom_histogram(binwidth = 500)
+
+
+# plot concentration of eating times, e.g., activity == bottle and hr.min
+dat.subset %>%
+    filter(Activity=="Bottle") %>%
+    ggplot(aes(x=hr.min,fill=Activity)) +
+        geom_histogram(binwidth = 1000) +
+        stat_count(position="identity") +
+        scale_x_time(breaks = "0.5 hours") +
+        labs(x="Time of day", y="count\n")  
+ 
+
+# plot Quantity if Activity == head size
 
 
 ```
