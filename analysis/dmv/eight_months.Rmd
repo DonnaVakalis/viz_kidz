@@ -1,0 +1,42 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+ 
+```{r}
+############## LIBRARIES =========================
+library(readr) #for reading csv files
+library(lubridate) #for working with dates
+library(chron) #for working with times
+
+library(scales) # for working with date/time in plots
+library(ggplot2) # for plots
+
+library(dplyr)
+
+```
+ 
+```{r}
+############## CREATE DATAFRAMES  =========================
+dat.rilka <-
+    read_csv("../../dat/Rilka_20190613_20200310.csv") %>%  #read raw file
+    rename (date_time = 'Date and Time') %>% #convert character dates to usable date object  
+    mutate (ID = "Rilka")
+
+```
+ 
+```{r}
+############## CALCULATE TOTALS =========================
+
+# Total time nursing
+
+# Total formula drank
+
+# Total pumped milk drank
+
+# Grand total
+
+
+```
+ 
+ 
