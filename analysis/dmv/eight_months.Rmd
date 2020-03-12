@@ -28,13 +28,23 @@ dat.rilka <-
 ```{r}
 ############## CALCULATE TOTALS =========================
 
-# Total time nursing
+# Total time nursing 
 
-# Total formula drank
 
-# Total pumped milk drank
+# Total formula and breast milk drank
+total.formula.r <- 
+    dat.rilka %>%
+    filter(Activity=="Bottle") %>%
+    select(Quantity) %>%
+    summarise_all(funs(sum))
 
-# Grand total
+total.formula.a <- 
+    dat.rilka %>%
+    filter(Activity=="Bottle") %>%
+    select(Quantity) %>%
+    summarise_all(funs(sum)) 
+ 
+ 
 
 
 ```
