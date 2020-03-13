@@ -21,7 +21,7 @@ library(dplyr)
 
 #Rilka
 dat.rilka <-
-    read_csv("../../dat/Rilka_20190613_20200310.csv") %>%  #read raw file
+    read_csv("../../dat/Rilka_20190713_20200313.csv") %>%  #read raw file
     rename (date_time = 'Date and Time') %>% #convert character dates to usable date object  
     rename (Extra = 'Extra data') %>% # convert column name to a friendlier format with no spaces
     rename (Duration = 'Duration (min)')%>% # same as above
@@ -29,7 +29,7 @@ dat.rilka <-
 
 #Amos
 dat.amos<-
-    read_csv("../../dat/Amos_20190613_20200310.csv") %>%  #read raw file
+    read_csv("../../dat/Amos_20190713_20200313.csv") %>%  #read raw file
     rename (date_time = 'Date and Time') %>% #convert character dates to usable date object  
     rename (Extra = 'Extra data') %>% # convert column name to a friendlier format with no spaces
     rename (Duration = 'Duration (min)')%>% # same as above
@@ -41,8 +41,6 @@ dat.amos<-
 ```{r}
 ############## CALCULATE TOTALS =========================
 
-df.totals <- data.frame()
-
 #------------------
 # TOTAL NURSING
 #------------------
@@ -50,15 +48,19 @@ df.totals <- data.frame()
 nursing.r<- 
     dat.rilka %>%
     filter(Activity=="Nursing") %>%
-    select(Duration) %>%
-    summarise_all(funs(sum))*12 #assume 60ml in 5 minutes, 12mL/min 
+    select(Duration) %>% 
+    rename(nursing='Duration') %>%
+    summarise_all(funs(sum))*12  #assume 60ml in 5 minutes, 12mL/min 
+    
  
 #AMOS
 nursing.a<- 
     dat.amos %>%
     filter(Activity=="Nursing") %>%
     select(Duration) %>%
-    summarise_all(funs(sum))*12 #assume 60ml in 5 minutes, 12mL/min 
+    rename(nursing='Duration') %>%
+    summarise_all(funs(sum))*12  #assume 60ml in 5 minutes, 12mL/min 
+    
 
 #------------------
 # TOTAL FORMULA
@@ -70,7 +72,8 @@ formula.r<-
     filter(Activity=="Bottle") %>%
     filter(Extra=="Formula") %>%
     select(Quantity) %>%
-    summarise_all(funs(sum))
+    summarise_all(funs(sum))%>%
+    rename(formula=Quantity)
 
 #AMOS
 formula.a<- 
@@ -78,7 +81,8 @@ formula.a<-
     filter(Activity=="Bottle") %>%
     filter(Extra=="Formula") %>%
     select(Quantity) %>%
-    summarise_all(funs(sum))
+    summarise_all(funs(sum))%>%
+    rename(formula=Quantity)
 
 
 #------------------
@@ -91,7 +95,8 @@ pumped.r<-
     filter(Activity=="Bottle") %>%
     filter(Extra=="Milk" | Extra == "Leche") %>%
     select(Quantity) %>%
-    summarise_all(funs(sum))
+    summarise_all(funs(sum))%>%
+    rename(pumped=Quantity)
 
 #AMOS
 pumped.a<- 
@@ -99,7 +104,27 @@ pumped.a<-
     filter(Activity=="Bottle") %>%
     filter(Extra=="Milk" | Extra == "Leche") %>%
     select(Quantity) %>%
-    summarise_all(funs(sum))
+    summarise_all(funs(sum)) %>%
+    rename(pumped=Quantity)
+
+#------------------
+# GRAND TOTAL
+#------------------
+
+total.r<-
+    Reduce(function(x,y) merge(x,y,all=TRUE) ,list(pumped.r,formula.r,nursing.r)) %>% 
+    mutate(total = rowSums(.)) %>%
+    mutate(calories= pumped + nursing + formula*0.7) %>%
+    mutate(ID="Rilka")
+  
+
+total.a<-
+    Reduce(function(x,y) merge(x,y,all=TRUE) ,list(pumped.a,formula.a,nursing.a)) %>% 
+    mutate(total = rowSums(.)) %>%
+    mutate(calories= pumped + nursing + formula*0.7) %>%
+    mutate(ID="Amos")
+
+  
 
 ```
  
